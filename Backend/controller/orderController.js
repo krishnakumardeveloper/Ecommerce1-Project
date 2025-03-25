@@ -1,4 +1,5 @@
-const orderModel = require("../models/orderModel")
+const orderModel = require("../models/orderModel");
+const productModel = require("../models/productModel");
 
 // create order -- http://localhost:6300/api/mgrk/order
 exports.createOrder = async(req,res,next)=>{
@@ -7,5 +8,13 @@ exports.createOrder = async(req,res,next)=>{
     const status = "pending";
     
     const order = await orderModel.create({cartItems, totalAmount, status})
+
+    // Updating Product stock
+    cartItems.forEach(async(item)=>{
+        const product = await productModel.findById(item.product._id)
+        product.stock = product.stock - item.qty
+        await product.save()
+    })
+
     res.json({success:true, msg: "Orders working", order})
 } 
